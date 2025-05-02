@@ -1,0 +1,107 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+d1=read.table('RTestData.txt', header=TRUE)
+attach(d1)
+```
+```{r}
+hist(fuso)
+qqnorm(fuso)
+qqline(fuso)
+
+```
+```{r}
+hist(lepto)
+qqnorm(lepto)
+qqline(lepto)
+sqrt_lepto<-sqrt(lepto)
+qqnorm(sqrt_lepto)
+qqline(sqrt_lepto)
+hist(sqrt_lepto)
+```
+```{r}
+hist(strep)
+qqnorm(strep)
+qqline(strep)
+lstrep<-log(strep)
+qqnorm(lstrep)
+qqline(lstrep)
+hist(lstrep)
+```
+```{r}
+hist(deepest)
+qqnorm(deepest)
+qqline(deepest)
+```
+```{r}
+anova_lepto <- aov(lepto ~ time, data=d1)
+summary(anova_lepto)
+```
+```{r}
+anova_strep <- aov(strep ~ time, data=d1)
+summary(anova_strep)
+```
+```{r}
+cor.test(strep, prev)
+```
+```{r}
+cor.test(strep, fuso)
+```
+```{r}
+cor.test(fuso, lepto)
+```
+```{r}
+model1 = lm(strep ~ deepest)
+plot(model1)
+abline(model1)
+```
+```{r}
+model2 = lm(fuso ~ deepest)
+plot(model2)
+abline(model2)
+```
+```{r}
+library(ggplot2)
+ggplot(model1, aes(x=prev))+geom_histogram(color = "black")+labs(title="Histogram of Prev")
+```
+```{r}
+ggplot(model1, aes(x=deepest, y=strep, color=time))+geom_point()+labs(title="Scatterplot of Strep vs Deepest")
+```
+```{r}
+ggplot(model1, aes(x=deepest, y=fuso, color=time))+geom_point()+labs(title="Scatterplot of Fuso vs Deepest")
+```
+```{r}
+ggplot(model1, aes(x=deepest, y=fuso, color=time))+geom_point()+geom_smooth(method="loess", color="black")+labs(title="Scatterplot of Fuso vs Deepest")
+```
+```{r}
+library(vegan)
+bacteria<-d1[, c(2,4,5)]
+summary(bacteria)
+attach(bacteria)
+```
+```{r}
+shannon<-diversity(bacteria, index="shannon")
+shannon
+```
+```{r}
+round_bacteria<-round(bacteria)
+rarefy(round_bacteria, 72)
+rarecurve(round_bacteria, col="blue")
+```
+```{r}
+bray=vegdist(bacteria, "bray")
+bray
+hist(bray)
+```
+```{r}
+mds=metaMDS(comm=bacteria, distance="bray", trace=FALSE, autotransform=FALSE)
+plot(mds)
+```
+```{r}
+MDS_xy<-data.frame(mds$points)
+ggplot(MDS_xy, aes(MDS1, MDS2, color=status))+geom_point()
+ggplot(MDS_xy, aes(MDS1, MDS2, color=time))+geom_point()
+```

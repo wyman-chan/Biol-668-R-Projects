@@ -1,0 +1,263 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Community Data
+```{r}
+library(picante) # Loads the picante package for ecological analysis
+```
+```{r}
+comm<-read.csv("grassland_data/grassland.community.csv", header = TRUE, row.names=1) # Assigns community composition data to comm
+```
+```{r}
+class(comm) # Checks the data type of comm
+```
+```{r}
+dim(comm) # Displays the size dimensions of the community data
+``` 
+```{r}
+rownames(comm) # Displays the row names of the community data
+```
+```{r}
+head(colnames(comm)) # Shows the first six column names
+```
+```{r}
+comm[1:5, 1:5] # Displays the first 5 rows and columns of the community data
+```
+```{r}
+apply(comm, 1, sum) # Calculates the sum of each row, which represents the total species counts per sample
+```
+```{r}
+comm <- decostand(comm, method = "total") # Standardizes data to relative abundance and assigns to comm
+apply(comm, 1, sum) # each row sums to 1 and verifies standardization
+```
+```{r}
+comm[1:5, 1:5] # Displays standardized data
+```
+Trait Data
+```{r}
+traits <- read.csv("grassland_data/species.traits.csv", header = TRUE, row.names = 1) # Assigns species trait data to traits
+head(traits) # Displays the first six rows of trait data
+```
+```{r}
+pairs(traits) # Creates scatterplot matrix of traits
+```
+```{r}
+traits <- log10(traits) # Log-transforms the trait data and assigns to traits
+pairs(traits) # Plots the log-transformed data
+```
+Metadata
+```{r}
+metadata <- read.csv("grassland_data/plot.metadata.csv", header = TRUE, row.names = 1) # Assigns plot metadata to metadata
+head(metadata) # Displays the first six rows of metadata
+```
+Phylogeny
+```{r}
+phy <- read.tree("grassland_data/grassland.phylogeny.newick") # Assigns phylogenetic tree to phy
+class(phy) # Displays the class of the phylogenetic object
+```
+```{r}
+phy # Prints summary of the phylogeny
+```
+```{r}
+names(phy) # Lists the names of the phylogenetic object
+```
+```{r}
+phy$tip.label[1:5] # Shows the first 5 tip labels of phy
+```
+```{r}
+Ntip(phy) # Counts the number of tips in the phylogeny
+```
+```{r}
+plot(phy, cex = 0.5) # Plots the phylogenetic tree
+```
+Cleaning and matching data sets
+```{r}
+ls() # Lists all objects in the environment
+```
+```{r}
+combined <- match.phylo.comm(phy, comm) # Matches phylogeny with community data and assigns to combined
+phy <- combined$phy # reassigns combined$phy to phy
+comm <- combined$comm # reassigns combined$comm to comm
+```
+```{r} 
+combined <- match.phylo.data(phy, traits) # Matches phylogeny with trait data and assigns to combined
+phy <- combined$phy # reassigns combined$phy to phy
+traits <- combined$data # reassigns combined$comm to comm
+```
+```{r}
+all.equal(rownames(comm), rownames(metadata)) # Checks if row names match
+```
+```{r}
+metadata <- metadata[rownames(comm), ] # Aligns metadata to community data
+```
+Community richness and diversity
+```{r}
+boxplot(specnumber(comm) ~ metadata$rel.moisture, ylab = "# of species") # Plots species richness by relative moisture
+```
+```{r}
+anova_result <- aov(specnumber(comm) ~ metadata$rel.moisture) # Performs ANOVA to test species richness differences since t-test couldn't work
+summary(anova_result) # shows anova test
+```
+```{r}
+plot(specaccum(comm), xlab = "# of samples", ylab = "# of species") # Plots species accumulation curve
+```
+Multivariate community analysis
+```{r}
+comm.bc.dist <- vegdist(comm, method = "bray") # Calculates Bray-Curtis dissimilarity matrix
+comm.bc.clust <- hclust(comm.bc.dist, method = "average") # Performs hierarchical clustering
+plot(comm.bc.clust, ylab = "Bray-Curtis dissimilarity") # Plots dendrogram
+```
+```{r}
+comm.bc.mds <- metaMDS(comm, dist = "bray") #visualize ecological community composition based on species abundance data
+```
+```{r}
+stressplot(comm.bc.mds) # To assess the goodness of fit of the ordination (low stress = good fit)
+```
+```{r}
+ordiplot(comm.bc.mds, display = "sites", type = "text") # To visualize the arrangement of sites in ordination space
+```
+```{r} 
+ordipointlabel(comm.bc.mds) # Add labels to the ordination plot
+```
+```{r}
+mds.fig <- ordiplot(comm.bc.mds, type = "none") # Customized NMDS plot with color-coded points and ellipses assigned to mds.fig
+points(mds.fig, "sites", pch = 19, col = "green", select = metadata$rel.moisture == 
+    "Fescue")
+points(mds.fig, "sites", pch = 19, col = "blue", select = metadata$rel.moisture == 
+    "Mixedgrass")
+ordiellipse(comm.bc.mds, metadata$rel.moisture, conf = 0.95, label = TRUE)
+ordicluster(comm.bc.mds, comm.bc.clust, col = "gray")
+```
+```{r}
+ordisurf(comm.bc.mds, comm[, "Sphaeralcea_coccinea"], bubble = TRUE, main = "Sphaeralcea coccinea abundance", 
+    cex = 3) # Visualize how the abundance of a specific species relates to the community composition
+```
+```{r}
+ordiplot(comm.bc.mds) # Fit environmental variables onto the ordination
+plot(envfit(comm.bc.mds, metadata[, 3:6]))
+```
+Trait evolution
+```{r}
+apply(traits, 2, Kcalc, phy) # Calculate phylogenetic signal using Blomberg's K statistic
+```
+```{r}
+multiPhylosignal(traits, multi2di(phy)) # Test for phylogenetic signal across multiple traits
+```
+```{r}
+plot(phy, direction = "up", show.tip.label = FALSE, show.node.label = TRUE, 
+    cex = 0.7) # Plot the phylogenetic tree with leaf area as tip labels
+tiplabels(pch = 19, col = "black", cex = 3 * (traits[, "LeafArea"]/max(traits[, 
+    "LeafArea"])))
+```
+```{r}
+root.gls <- gls(RootTissueDens ~ SRL, data = traits) # GLS model to analyze trait relationships without considering phylogenetic relatedness
+anova(root.gls)
+```
+```{r}
+root.pgls <- gls(RootTissueDens ~ SRL, correlation = corBrownian(value = 1, 
+    phy), data = traits) # tests trait relationships while accounting for shared evolutionary history
+anova(root.pgls)
+```
+```{r}
+plot(RootTissueDens ~ SRL, data = traits, xlab = "SRL (specific root length)", 
+    ylab = "Root tissue density") # Plotting GLS and PGLS model to quantify community diversity incorporating phylogenetic relationships
+abline(coef(root.gls), lwd = 2, col = "black")
+abline(coef(root.pgls), lwd = 2, col = "red")
+legend("bottomleft", legend = c("GLS fit", "Phylogenetic GLS fit"), lwd = 2, 
+    col = c("black", "red"))
+```
+Phylogenetic and trait diversity
+```{r}
+comm.pd <- pd(comm, phy) #quantify community diversity between comm and phy and assigns to comm.pd
+head(comm.pd) # Displays the first few rows of comm.pd
+```
+```{r}
+boxplot(comm.pd$PD ~ metadata$rel.moisture, xlab = "Rel. Moisture", ylab = "Faith's PD") # Boxplot comparing PD across relative moisture categories
+```
+```{r}
+anova_result2 <- aov(comm.pd$PD ~ metadata$rel.moisture) # test differences in PD across moisture categories
+summary(anova_result2)
+```
+```{r}
+plot(comm.pd$PD ~ comm.pd$SR, xlab = "Species richness", ylab = "Faith's PD") # Plot PD vs. species richness
+```
+```{r}
+phy.dist <- cophenetic(phy) # evaluate community structure relative to random expectations
+comm.sesmpd <- ses.mpd(comm, phy.dist, null.model = "richness", abundance.weighted = FALSE, 
+    runs = 999)
+head(comm.sesmpd) # Displays the first few rows ofsesmpd
+```
+```{r}
+comm.sesmntd <- ses.mntd(comm, phy.dist, null.model = "richness", abundance.weighted = FALSE, 
+    runs = 999) # evaluates community structure relative to random expectations
+head(comm.sesmntd) # Displays the first few rows of comm.semntd
+```
+```{r}
+plot(comm.sesmpd$mpd.obs.z ~ metadata$rel.moisture, xlab = "Rel. Moisture", ylab = "SES(MPD)")
+abline(h = 0, col = "gray") # To assess how phylogenetic community structure varies with environmental conditions
+```
+```{r}
+aov_result3<-aov(comm.sesmpd$mpd.obs.z ~ metadata$rel.moisture) # Perform ANOVA to test
+summary(aov_result3) # Display ANOVA results
+```
+```{r}
+plot(phy, show.tip.label = FALSE, main = "Fescue community fes-K-11") # Plot phylogenetic tree and highlight species present in the "Fescue community fes-K-11"
+tiplabels(tip = which(phy$tip.label %in% colnames(comm)[comm["fes-K-11", ] > 
+    0]), pch = 19) # labels tips corresponding to species present in the community
+```
+```{r}
+plot(phy, show.tip.label = FALSE, main = "Fescue community mix-H-23") # Plot phylogenetic tree and highlight species present in the "Fescue community mix-H-23"
+tiplabels(tip = which(phy$tip.label %in% colnames(comm)[comm["mix-H-23", ] > 
+    0]), pch = 19) # labels tips corresponding to species present in the community
+```
+Trait diversity
+```{r}
+trait.dist <- as.matrix(dist(scale(traits), method = "euclidean")) # Compute trait distance matrix
+comm.sesmpd.traits <- ses.mpd(comm, trait.dist, null.model = "richness", abundance.weighted = FALSE, 
+    runs = 999) # Calculate SES MPD using trait data
+plot(comm.sesmpd.traits$mpd.obs.z ~ metadata$rel.moisture, xlab = "Rel. Moisture", ylab = "Trait SES(MPD)") # Plot trait-based SES MPD against relative moisture
+abline(h = 0, col = "gray") # add a reference line to 0
+```
+```{r}
+comm.mntd.dist <- comdistnt(comm, phy.dist, abundance.weighted = TRUE)  # Compute trait distance matrix
+comm.mntd.traits.dist <- comdistnt(comm, trait.dist, abundance.weighted = TRUE) # Compute Mean Nearest Taxon Distance (MNTD) for phylogenetic and trait data
+mantel(comm.bc.dist, comm.mntd.dist)  # Compare Bray-Curtis and phylogenetic MNTD distances
+```
+```{r}
+mantel(comm.bc.dist, comm.mntd.traits.dist) # Compare Bray-Curtis and trait-based MNTD distances
+```
+Phylogeny/trait-based ordinations
+```{r}
+comm.mntd.mds <- monoMDS(comm.mntd.dist) # Perform Non-metric Multidimensional Scaling for phylogenetic distances
+mds.fig <- ordiplot(comm.mntd.mds, type = "none")  # Prepare ordination plot and assign to mds.fig
+points(mds.fig, "sites", pch = 19, col = "green", select = metadata$rel.moisture == 
+    "Fescue") # Add points for different moisture conditions
+points(mds.fig, "sites", pch = 19, col = "blue", select = metadata$rel.moisture == 
+    "Mixedgrass")
+ordiellipse(comm.mntd.mds, metadata$rel.moisture, conf = 0.95, label = TRUE) # Add ellipses representing 95% confidence intervals around groups
+```
+```{r}
+comm.mntd.traits.mds <- monoMDS(comm.mntd.traits.dist) # NMDS on trait-based MNTD distance
+mds.fig <- ordiplot(comm.mntd.traits.mds, type = "none") # Prepare ordination plot and assign to mds.fig
+points(mds.fig, "sites", pch = 19, col = "green", select = metadata$rel.moisture == 
+    "Fescue") # Add points for different moisture conditions
+points(mds.fig, "sites", pch = 19, col = "blue", select = metadata$rel.moisture == 
+    "Mixedgrass")
+ordiellipse(comm.mntd.traits.mds, metadata$rel.moisture, conf = 0.95, label = TRUE) # Add ellipses representing 95% confidence intervals around groups
+```
+```{r} 
+adonis(comm.bc.dist ~ rel.moisture, data = metadata) # Perform Adonis test to test for differences in community composition across moisture conditions
+```
+```{r}
+adonis(comm.mntd.dist ~ rel.moisture, data = metadata)
+```
+```{r}
+adonis(comm.mntd.traits.dist ~ rel.moisture, data = metadata)
+```
+
+
+
+
+
+
