@@ -4,16 +4,21 @@ output: html_notebook
 ---
 
 ```{r}
+#Load dataset and attach columns for direct reference
 d1=read.table('RTestData.txt', header=TRUE)
 attach(d1)
 ```
+
 ```{r}
+#Plot histogram and Q-Q plot for 'fuso' variable to assess normality
 hist(fuso)
 qqnorm(fuso)
 qqline(fuso)
-
 ```
+
 ```{r}
+#Assess the distribution of the 'lepto' variable
+#Apply square-root transformation to improve normality
 hist(lepto)
 qqnorm(lepto)
 qqline(lepto)
@@ -22,7 +27,10 @@ qqnorm(sqrt_lepto)
 qqline(sqrt_lepto)
 hist(sqrt_lepto)
 ```
+
 ```{r}
+# Assess the distribution of the 'strep' variable
+# Apply log transformation to improve normality
 hist(strep)
 qqnorm(strep)
 qqline(strep)
@@ -31,76 +39,114 @@ qqnorm(lstrep)
 qqline(lstrep)
 hist(lstrep)
 ```
+
 ```{r}
+#Assess the distribution of the 'deepest' variable
 hist(deepest)
 qqnorm(deepest)
 qqline(deepest)
 ```
+
 ```{r}
+#Perform ANOVA: test for time-based differences in 'lepto'
 anova_lepto <- aov(lepto ~ time, data=d1)
 summary(anova_lepto)
 ```
+
 ```{r}
+#Perform ANOVA: test for time-based differences in 'strep'
 anova_strep <- aov(strep ~ time, data=d1)
 summary(anova_strep)
 ```
+
 ```{r}
+#Compute Pearson correlation between 'strep' and 'prev'
 cor.test(strep, prev)
 ```
+
 ```{r}
+#Compute Pearson correlation between 'strep' and 'fuso'
 cor.test(strep, fuso)
 ```
+
 ```{r}
+#Compute Pearson correlation between 'fuso' and 'lepto'
 cor.test(fuso, lepto)
 ```
+
 ```{r}
+#Build linear model with strep as a function of deepest
+#Plot model with regression line
 model1 = lm(strep ~ deepest)
 plot(model1)
 abline(model1)
 ```
+
 ```{r}
+#Build linear model with fuso as a function of deepest
+#Plot model with regression line
 model2 = lm(fuso ~ deepest)
 plot(model2)
 abline(model2)
 ```
+
 ```{r}
+#Loads and uses ggplot2 to plot histogram of 'prev'
 library(ggplot2)
 ggplot(model1, aes(x=prev))+geom_histogram(color = "black")+labs(title="Histogram of Prev")
 ```
+
 ```{r}
+#Create scatterplot of 'strep' vs 'deepest' colored based on 'time'
 ggplot(model1, aes(x=deepest, y=strep, color=time))+geom_point()+labs(title="Scatterplot of Strep vs Deepest")
 ```
+
 ```{r}
+#Create scatterplot of 'fuso' vs 'deepest' colored based on 'time'
 ggplot(model1, aes(x=deepest, y=fuso, color=time))+geom_point()+labs(title="Scatterplot of Fuso vs Deepest")
 ```
+
 ```{r}
+#Add smoothing line to scatterplot of 'fuso' vs 'deepest'
 ggplot(model1, aes(x=deepest, y=fuso, color=time))+geom_point()+geom_smooth(method="loess", color="black")+labs(title="Scatterplot of Fuso vs Deepest")
 ```
+
 ```{r}
+#Loads vegan and subsets columns for diversity analysis
 library(vegan)
 bacteria<-d1[, c(2,4,5)]
 summary(bacteria)
 attach(bacteria)
 ```
+
 ```{r}
+#Calculate Shannon diversity index
 shannon<-diversity(bacteria, index="shannon")
 shannon
 ```
+
 ```{r}
+#Perform rarefaction analysis and plot rarefaction curves
 round_bacteria<-round(bacteria)
 rarefy(round_bacteria, 72)
 rarecurve(round_bacteria, col="blue")
 ```
+
 ```{r}
+#Compute Bray-Curtis distance matrix and plot histogram
 bray=vegdist(bacteria, "bray")
 bray
 hist(bray)
 ```
+
 ```{r}
+#Perform non-metric multidimensional scaling (NMDS)
 mds=metaMDS(comm=bacteria, distance="bray", trace=FALSE, autotransform=FALSE)
 plot(mds)
 ```
+
 ```{r}
+#Plot NMDS results with ggplot2, colored by metadata variables
 MDS_xy<-data.frame(mds$points)
 ggplot(MDS_xy, aes(MDS1, MDS2, color=status))+geom_point()
 ggplot(MDS_xy, aes(MDS1, MDS2, color=time))+geom_point()
