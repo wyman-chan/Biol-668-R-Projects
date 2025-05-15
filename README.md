@@ -6,7 +6,7 @@ This repository contains R scripts and analyses completed for the Biol-668: Adva
 # Contents
 Part 1: Analysis of Bacterial Abundance and Diversity over Time
 
-To explore the distribution, transformation, correlation, and diversity of bacterial species. The analysis includes testing for normality, transformations, ANOVA for time effects, correlation among species, linear modeling, and ordination techniques. The project shows trends and relationships between bacterial species and depth. It includes histograms and Q-Q plots for normality checks, transformed variables to meet assumptions, ANOVA tests showing correlation analyses between species, linear regression models linking species to depth, and NMDS ordination plots visualizing community composition based on Bray-Curtis distances.
+To explore the distribution, transformation, correlation, and diversity of bacterial species. The analysis includes testing for normality, transformations, ANOVA, correlation among species, linear modeling, and ordination techniques. The project shows trends and relationships between bacterial species and depth. It includes histograms and Q-Q plots for normality checks, transformed variables to meet assumptions, ANOVA tests showing correlation analyses between species, linear regression models linking species to depth, and NMDS ordination plots visualizing community composition based on Bray-Curtis distances.
 
 
 Part 2: Analysis of Grassland Plant Communities
