@@ -17,8 +17,10 @@ To analyze how plant community composition, phylogenetic structure, and function
 Examples used the test data file provided.
 
 Part 1:
+This example uses the RTestData.txt
 ![A2FEA23F-B0B1-4C6F-8B70-7EE091E0A9A3](https://github.com/user-attachments/assets/92ed946d-a2bc-45c1-92d7-95a53b77f17d)
 
 Part 2:
+This example uses the grassland data.
 ![44CA0038-BD17-4C49-9F11-505838A7DA41](https://github.com/user-attachments/assets/ae0397c9-7a16-4279-89f1-6c73eb830c89)
 
