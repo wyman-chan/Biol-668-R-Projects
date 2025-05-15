@@ -16,3 +16,11 @@ Part 2: Analysis of Grassland Plant Communities
 Objective: To analyze how plant community composition, phylogenetic structure, and functional trait diversity in a grassland ecosystem vary with environmental factors—particularly relative moisture. The project integrates community ecology, trait evolution, and phylogenetics to assess biodiversity patterns and ecological structure.
 
 Output: This project produces a wide range of ecological insights. These analyses collectively demonstrate how environmental gradients shape plant community assembly via ecological, evolutionary, and functional dimensions.
+
+# Example
+Part 1:
+![A2FEA23F-B0B1-4C6F-8B70-7EE091E0A9A3](https://github.com/user-attachments/assets/92ed946d-a2bc-45c1-92d7-95a53b77f17d)
+
+Part 2:
+![44CA0038-BD17-4C49-9F11-505838A7DA41](https://github.com/user-attachments/assets/ae0397c9-7a16-4279-89f1-6c73eb830c89)
+
