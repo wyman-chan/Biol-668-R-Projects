@@ -18,6 +18,8 @@ Objective: To analyze how plant community composition, phylogenetic structure, a
 Output: This project produces a wide range of ecological insights. These analyses collectively demonstrate how environmental gradients shape plant community assembly via ecological, evolutionary, and functional dimensions.
 
 # Example
+Examples used the test data file provided.
+
 Part 1:
 ![A2FEA23F-B0B1-4C6F-8B70-7EE091E0A9A3](https://github.com/user-attachments/assets/92ed946d-a2bc-45c1-92d7-95a53b77f17d)
 
